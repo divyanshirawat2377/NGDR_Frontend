@@ -1,23 +1,16 @@
 import DMSNAV from "./Components/DMSNAV";
 import Footer from "./Components/Footer";
 import { useState } from "react";
-
-import pdf from './assets/pdf.png';
-import word from './assets/word.png';
-import img from './assets/img.png';
-import folder from './assets/folder.png';
+import { useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
 
 function DMS() {
     const [product, setProduct] = useState({ productCategory: '' });
-    const [period, setPeriod] = useState({ periodCategory: '' });
-    const [document, setDocument] = useState({ documentCategory: '' });
-
-    const [dragging, setDragging] = useState(false);
-    const [selectedFiles, setSelectedFiles] = useState([]);
-    const [uploadProgress, setUploadProgress] = useState({});
+    const [] = useState({ periodCategory: '' });
+    const [setDocument] = useState({ documentCategory: '' });
     const [selectedCategory, setSelectedCategory] = useState('All documents');
     const [searchQuery, setSearchQuery] = useState('');
-    const [documents, setDocuments] = useState([
+    const [documents] = useState([
         { id: 1, name: 'Document 1', category: 'Receipts', owner: 'John Doe', date: '2024-05-01' },
         { id: 2, name: 'Document 2', category: 'Contracts', owner: 'Jane Doe', date: '2024-05-02' },
         { id: 3, name: 'Document 3', category: 'Others', owner: 'Alice Smith', date: '2024-05-03' },
@@ -25,79 +18,27 @@ function DMS() {
         { id: 5, name: 'Document 5', category: 'Contracts', owner: 'Charlie Brown', date: '2024-05-05' },
     ]);
 
-    const handleDragOver = (e) => {
-        e.preventDefault();
-    };
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [files, setFiles] = useState([]);
+    const [downloadHistory, setDownloadHistory] = useState([]);
 
-    const handleDrop = (e) => {
-        e.preventDefault();
-        setDragging(false);
-        const files = e.dataTransfer.files;
-        handleFiles(files);
-    };
+    const onDrop = useCallback((acceptedFiles) => {
+        setSelectedFiles(acceptedFiles);
+    }, []);
 
-    const handleFileInputChange = (e) => {
-        const files = e.target.files;
-        handleFiles(files);
-    };
-
-    const handleFiles = (files) => {
-        const fileList = Array.from(files);
-        setSelectedFiles(fileList);
-        addFilesToDocuments(fileList);
-        simulateUpload(fileList);
-    };
-
-    const simulateUpload = (files) => {
-        const progress = {};
-        files.forEach(file => {
-            progress[file.name] = 0;
-            const interval = setInterval(() => {
-                setUploadProgress(prevProgress => {
-                    const newProgress = { ...prevProgress };
-                    if (newProgress[file.name] < 100) {
-                        newProgress[file.name] += 10;
-                    } else {
-                        clearInterval(interval);
-                    }
-                    return newProgress;
-                });
-            }, 200);
-        });
-        setUploadProgress(progress);
-    };
-
-    const getFileIcon = (fileName) => {
-        const ext = fileName.split('.').pop().toLowerCase();
-        switch (ext) {
-            case 'pdf':
-                return pdf;
-            case 'doc':
-            case 'docx':
-                return word;
-            case 'jpg':
-            case 'jpeg':
-            case 'png':
-                return img;
-            default:
-                return folder;
-        }
-    };
-
-    const handleUploadButtonClick = () => {
-        document.getElementById('fileInput').click(); // Trigger file input click
-    };
-
-    const addFilesToDocuments = (files) => {
-        const newDocuments = files.map((file, index) => ({
-            id: documents.length + index + 1,
+    const handleFileUpload = () => {
+        const newFiles = selectedFiles.map((file) => ({
             name: file.name,
-            category: 'Uploaded', // You can change this to any relevant category
-            owner: 'You', // Replace with actual owner if needed
-            date: new Date().toISOString().split('T')[0], // Current date
+            size: (file.size / (1024 * 1024)).toFixed(2), // Size in MB
+            date: new Date().toLocaleDateString(),
+            type: file.type,
         }));
-        setDocuments(prevDocuments => [...prevDocuments, ...newDocuments]);
+        setFiles([...files, ...newFiles]);
+        setDownloadHistory([...downloadHistory, ...newFiles]); // Update download history
+        setSelectedFiles([]);
     };
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
     const handleCategoryChange = (category) => {
         setSelectedCategory(category);
@@ -111,20 +52,13 @@ function DMS() {
         // Implement the search functionality
     };
 
-    const filteredDocuments = documents.filter(doc => {
-        return (
-            (selectedCategory === 'All documents' || doc.category === selectedCategory) &&
-            doc.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    });
-
     return (
         <div>
             <DMSNAV />
             <div className="flex flex-col pb-12 rounded-2xl ">
                 <div className="flex flex-col px-8 mt-11 w-full font-medium leading-[140%] max-md:px-5 max-md:mt-10 max-md:max-w-full">
 
-                    {/*  First-LINE   */}
+                    {/* First-LINE */}
                     <div className="flex gap-5 self-start max-md:flex-wrap">
                         <div>
                             <input
@@ -150,7 +84,7 @@ function DMS() {
                         </div>
                     </div>
 
-                    {/*  SECOND-LINE  */}
+                    {/* SECOND-LINE */}
                     <div className="flex gap-5 justify-between mt-11 w-full max-md:flex-wrap max-md:mt-10 max-md:max-w-full">
                         <div className="flex gap-4 text-lg text-zinc-500 max-md:flex-wrap">
                             <div className="flex gap-5 px-6 py-2 bg-white rounded-xl border-2 border-solid border-neutral-400 max-md:px-5">
@@ -183,33 +117,7 @@ function DMS() {
                                 </div>
                             </div>
 
-                            <div className="flex gap-5 py-2 pr-2.5 pl-6 bg-white rounded-xl border-2 border-solid border-neutral-400 max-md:pl-5">
-                                <div className="flex-auto my-auto">Period</div>
-                                <div className="dropdown">
-                                    <select className='form-select mt-2' value={period.periodCategory} onChange={(evt) => setPeriod({ ...period, periodCategory: evt.target.value })}>
-                                        <option value="Blank"></option>
-                                        <option value="All">All</option>
-                                        <option value="Books">Books</option>
-                                        <option value="Furniture">Furniture</option>
-                                        <option value="Electronics">Electronics</option>
-                                        <option value="Mobile">Mobile</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-5 py-2 pr-2.5 pl-6 bg-white rounded-xl border-2 border-solid border-neutral-400 max-md:pl-5">
-                                <div className="flex-auto my-auto">Documents Type</div>
-                                <div className="dropdown">
-                                    <select className='form-select mt-2' value={document.documentCategory} onChange={(evt) => setDocument({ ...document, documentCategory: evt.target.value })}>
-                                        <option value="Blank"></option>
-                                        <option value="All">All</option>
-                                        <option value="Books">Books</option>
-                                        <option value="Furniture">Furniture</option>
-                                        <option value="Electronics">Electronics</option>
-                                        <option value="Mobile">Mobile</option>
-                                    </select>
-                                </div>
-                            </div>
+                            {/* Other dropdowns... */}
                         </div>
                         <button
                             className="justify-center px-16 py-4 text-xl text-white whitespace-nowrap rounded-xl bg-violet-950 max-md:pr-7 max-md:pl-6"
@@ -219,93 +127,58 @@ function DMS() {
                         </button>
                     </div>
 
-                    {/*  THIRD-LINE   */}
-                    <div className="flex justify-center items-center px-16 py-8 mt-11 bg-gray-200 rounded-xl border border-dashed border-zinc-700 max-md:px-5 max-md:mt-10 max-md:max-w-full">
-                        <div className="flex flex-col max-w-full w-[260px]">
-                            <label
-                                htmlFor="fileInput"
-                                className="cursor-pointer justify-center items-center px-16 py-4 text-xl text-white rounded-xl bg-violet-950 max-md:px-5"
-                            >
-                                Choose file
-                                <input
-                                    type="file"
-                                    id="fileInput"
-                                    className="hidden"
-                                    onChange={handleFileInputChange}
-                                    multiple
-                                />
-                            </label>
-                            <div
-                                className="self-center mt-6 text-lg text-neutral-600"
-                                onDragOver={handleDragOver}
-                                onDrop={handleDrop}
-                                style={{
-                                    border: '1px dashed #555',
-                                    padding: '20px',
-                                    textAlign: 'center',
-                                    backgroundColor: dragging ? 'rgba(255, 0, 0, 0.1)' : 'transparent',
-                                    cursor: 'pointer',
-                                }}
-                                onDragEnter={() => setDragging(true)}
-                                onDragLeave={() => setDragging(false)}
-                            >
-                                {dragging ? 'Drop here' : 'or drag file in here'}
-                            </div>
-                        </div>
-                        <div className="mt-4">
-                            {selectedFiles.length > 0 && (
-                                <ul>
-                                    {selectedFiles.map((file, index) => (
-                                        <li key={index} className="flex items-center mb-2">
-                                            <img src={getFileIcon(file.name)} alt="File icon" className="w-8 h-8 mr-2" />
-                                            {file.name}
-                                            {uploadProgress[file.name] !== undefined && (
-                                                <div className="w-full ml-4">
-                                                    <div className="bg-gray-200 h-2.5 rounded-full">
-                                                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress[file.name]}%` }}></div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
+                    {/* THIRD-LINE */}
+                    <div className="max-w-2xl mx-auto p-4 ">
+                        <h2 className="text-2xl font-bold mb-4">File Upload</h2>
+                        <div
+                            {...getRootProps()}
+                            className={`border-2 border-dashed rounded-lg p-6 text-center ${isDragActive ? 'border-blue-500 bg-blue-100' : 'border-gray-300 bg-gray-50'
+                                }`}
+                        >
+                            <input {...getInputProps()} />
+                            {isDragActive ? (
+                                <p className="text-blue-500">Drop the files here ...</p>
+                            ) : (
+                                <p className="text-gray-500">Drag and drop some files here, or click to select files</p>
                             )}
                         </div>
-
-                        <button
-                            className="justify-center px-16 py-4 text-xl text-white whitespace-nowrap rounded-xl bg-violet-950 max-md:pr-7 max-md:pl-6"
-                            onClick={handleUploadButtonClick}>
+                        <button onClick={handleFileUpload}
+                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none">
                             Upload
                         </button>
-
                     </div>
 
-                    {/*  FOURTH-LINE  */}
-                    <div className="flex flex-col pb-20 mt-8 text-lg text-white bg-white rounded-xl border-2 border-solid border-zinc-400 max-md:max-w-full">
-                        <div className="flex justify-center items-center px-16 py-8 mb-24 rounded-xl bg-violet-950 max-md:px-5 max-md:mb-10 max-md:max-w-full">
-                            <div className="flex gap-5 justify-between w-full max-w-[1070px] max-md:flex-wrap max-md:max-w-full">
-                                <div>Name</div>
-                                <div>Owner</div>
-                                <div>File Type</div>
-                                <div>Date</div>
-                                <div>Action</div>
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                            {filteredDocuments.map(doc => (
-                                <div key={doc.id} className="flex gap-5 justify-between w-full max-w-[1070px] mb-4 p-4 border-b border-gray-300">
-                                    <div>{doc.name}</div>
-                                    <div>{doc.owner}</div>
-                                    <div>{doc.category}</div>
-                                    <div>{doc.date}</div>
-                                    <div>Action</div>
-                                </div>
-                            ))}
-                        </div>
+                    {/* Fifth-Line */}
+                    <div className="w-[100%] ml-[0%]">
+                        <table className=" bg-white border border-gray-200 mt-4">
+                            <thead>
+                                <tr>
+                                    <th className="px-4 py-2 border-b">File Name</th>
+                                    <th className="px-4 py-2 border-b text-left">Upload Date</th>
+                                    <th className="px-4 py-2 border-b ">File Size (MB)</th>
+                                    <th className="px-4 py-2 border-b text-left">File Type</th>
+                                    <th className="px-4 py-2 border-b ">Owner</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {files.map((file, index) => (
+                                    <tr key={index}>
+                                        <td className="px-4 py-2 border-b ">{file.name}</td>
+                                        <td className="px-4 py-2 border-b ">{file.date}</td>
+                                        <td className="px-4 py-2 border-b text-center ">{file.size}</td>
+                                        <td className="px-4 py-2 border-b text-left ">{file.type}</td>
+                                        <td className="px-4 py-2 border-b ">{file.owner}</td> 
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-            <Footer />
+
+            <div className="mt-[-12%]">
+                <Footer />
+            </div>
         </div>
     );
 }

@@ -116,9 +116,9 @@ function Login() {
                 onChange={handleInputChange}
                 value={userInput}
               />
-              <button type="submit" className="justify-center items-center px-16 py-5 mt-8 text-base font-semibold text-white rounded-lg border-0 border-white border-solid shadow-sm bg-violet-950 max-md:px-5 ml-[37%]">
+              <a href="./DMS"><button type="submit" className="justify-center items-center px-16 py-5 mt-8 text-base font-semibold text-white rounded-lg border-0 border-white border-solid shadow-sm bg-violet-950 max-md:px-5 ml-[25%]">
                 Log in
-              </button>
+              </button></a>
               <div className="self-center mt-14 text-base text-violet-950 max-md:mt-10">
                 <span className="">Don’t have an account?</span>
                 <span className="font-bold text-violet-950"><a href="./Signup">Sign up</a></span>

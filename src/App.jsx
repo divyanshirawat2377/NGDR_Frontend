@@ -11,6 +11,7 @@ import DMSNAV from './Components/DMSNAV';
 import ForgotPasswordModal from './Components/ForgotPasswordModal';
 
 
+
 function App() {
   return (
     <Router>
@@ -25,6 +26,7 @@ function App() {
         <Route path='/VisitorCount' element={<VisitorCount/>}/>
         <Route path='/DMSNAV' element={<DMSNAV/>}/>
         <Route path='/Forget' element={<ForgotPasswordModal/>}/>
+        <Route path='/fileContext' element={<fileContext/>}/>
 
   
       </Routes>
