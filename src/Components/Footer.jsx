@@ -12,7 +12,7 @@ function Footer() {
                 <div className="flex gap-5 max-md:flex-col max-md:gap-0">
                     <div className="flex flex-col w-4/5 max-md:ml-0 max-md:w-full">
                         <div className="flex flex-col my-auto leading-[150%] mb-[118px] w-[400px] ">
-                            <div className="text-2xl font-bold text-yellow-400 mt-[-50%]">
+                            <div className="text-2xl font-bold text-yellow-400 mt-[-410px]">
                                 Contact Us
                             </div>
                             <div className="flex gap-5 mt-16 text-lg leading-7 text-gray-100 max-md:flex-wrap max-md:mt-10">

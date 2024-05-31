@@ -103,18 +103,17 @@ function DMS() {
                                 />
                             </div>
                             <div className="flex gap-5 py-2 pr-2.5 pl-6 bg-white rounded-xl border-2 border-solid border-neutral-400 max-md:pl-5">
-                                <div className="flex-auto my-auto">All Categories</div>
-                                <div className="dropdown">
-                                    <select className='form-select mt-2' value={product.productCategory} onChange={(evt) => setProduct({ ...product, productCategory: evt.target.value })}>
-                                        <option value="Blank"></option>
-                                        <option value="All">All</option>
-                                        <option value="Books">Books</option>
-                                        <option value="Furniture">Furniture</option>
-                                        <option value="Electronics">Electronics</option>
-                                        <option value="Mobile">Mobile</option>
-                                        <option value="None">None</option>
-                                    </select>
-                                </div>
+                    
+                                <select className='form-select mt-2 border-none' value={product.productCategory} onChange={(evt) => setProduct({ ...product, productCategory: evt.target.value })}>
+                                    <option value="Blank"></option>
+                                    <option value="All">All</option>
+                                    {/* <option value="Books">Books</option>
+                                    <option value="Furniture">Furniture</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Mobile">Mobile</option>
+                                    <option value="None">None</option> */}
+                                </select>
+
                             </div>
 
                             {/* Other dropdowns... */}
@@ -167,12 +166,13 @@ function DMS() {
                                         <td className="px-4 py-2 border-b ">{file.date}</td>
                                         <td className="px-4 py-2 border-b text-center ">{file.size}</td>
                                         <td className="px-4 py-2 border-b text-left ">{file.type}</td>
-                                        <td className="px-4 py-2 border-b ">{file.owner}</td> 
+                                        <td className="px-4 py-2 border-b ">{file.owner}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
+
                 </div>
             </div>
 
