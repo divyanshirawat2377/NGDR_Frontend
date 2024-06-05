@@ -12,7 +12,7 @@ function Navbar() {
                             Login
                         </Link>
                         <Link to="/signup" className="flex gap-2 self-end px-4 py-2.5 text-base font-medium text-white whitespace-nowrap rounded-lg bg-violet-900 hover:bg-violet-950">
-                            Sign up
+                            Register
                         </Link>
                     </div>
                     <div>

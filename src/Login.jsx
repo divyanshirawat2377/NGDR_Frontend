@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate hook
+import { Link,useNavigate } from "react-router-dom"; // Import useNavigate hook
 import Navbar from "./Components/Navbar";
 import Footer from "./Components/Footer";
 
@@ -73,9 +73,9 @@ function Login() {
                 </div>
                 <div className="cursor-pointer" onClick={handleForgotPasswordClick}><a href="Forget">Forgot Password?</a></div> 
               </div>
-              <button type="submit" className="justify-center items-center px-16 py-5 mt-8 text-base font-semibold text-white rounded-lg border-0 border-white border-solid shadow-sm bg-violet-950 max-md:px-5 ml-[25%]">
+              <Link to = '/DMS'><button type="submit" className="justify-center items-center px-16 py-5 mt-8 text-base font-semibold text-white rounded-lg border-0 border-white border-solid shadow-sm bg-violet-950 max-md:px-5 ml-[25%]">
                 Log in
-              </button>
+              </button></Link>
               <div className="self-center mt-14 text-base text-violet-950 max-md:mt-10">
                 <span className="">Don’t have an account?</span>
                 <span className="font-bold text-violet-950"><a href="./Signup">Sign up</a></span>
@@ -88,5 +88,4 @@ function Login() {
     </div>
   );
 }
-
 export default Login;
