@@ -1,24 +1,15 @@
 import DMSNAV from "./Components/DMSNAV";
 import Footer from "./Components/Footer";
-import { useState } from "react";
-import { useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { FaDownload } from 'react-icons/fa';
+import { useState, useCallback, useEffect } from "react";
+import { useDropzone } from "react-dropzone";
+import { FaDownload } from "react-icons/fa";
 
 function DMS() {
-    const [product, setProduct] = useState({ productCategory: '' });
-    const [category] = useState({ periodCategory: '' });
-    const [setDocument] = useState({ documentCategory: '' });
-    const [selectedCategory, setSelectedCategory] = useState('All documents');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [documents] = useState([
-        { id: 1, name: 'Document 1', category: 'Receipts', owner: 'John Doe', date: '2024-05-01' },
-        { id: 2, name: 'Document 2', category: 'Contracts', owner: 'Jane Doe', date: '2024-05-02' },
-        { id: 3, name: 'Document 3', category: 'Others', owner: 'Alice Smith', date: '2024-05-03' },
-        { id: 4, name: 'Document 4', category: 'Receipts', owner: 'Bob Johnson', date: '2024-05-04' },
-        { id: 5, name: 'Document 5', category: 'Contracts', owner: 'Charlie Brown', date: '2024-05-05' },
-    ]);
-
+    const [product, setProduct] = useState({ productCategory: "" });
+    const [category] = useState({ periodCategory: "" });
+    const [setDocument] = useState({ documentCategory: "" });
+    const [selectedCategory, setSelectedCategory] = useState("All documents");
+    const [searchQuery, setSearchQuery] = useState("");
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [files, setFiles] = useState([]);
     const [downloadHistory, setDownloadHistory] = useState([]);
@@ -28,31 +19,67 @@ function DMS() {
         setSelectedFiles(acceptedFiles);
     }, []);
 
-    const handleFileUpload = () => {
-        const newFiles = selectedFiles.map((file) => ({
-            name: file.name,
-            size: (file.size / (1024 * 1024)).toFixed(2),
-            date: new Date().toLocaleDateString(),
-            type: file.type,
-            file: file 
-        }));
-        setFiles([...files, ...newFiles]);
-        setDownloadHistory([...downloadHistory, ...newFiles]);
-        setSelectedFiles([]);
-    };
+    const handleFileUpload = async () => {
+        const formData = new FormData();
+        selectedFiles.forEach((file) => {
+            formData.append("files", file);
+        });
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+        try {
+            const response = await fetch("http://localhos", {
+                method: "POST",
+                body: formData,
+            });
 
-    const handleCategoryChange = (category) => {
-        setSelectedCategory(category);
+            if (response.ok) {
+                const result = await response.json();
+                const newFiles = result.files.map((file) => ({
+                    name: file.originalname,
+                    size: (file.size / (1024 * 1024)).toFixed(2),
+                    date: new Date().toLocaleDateString(),
+                    type: file.mimetype,
+                    file: file,
+                }));
+                setFiles([...files, ...newFiles]);
+                setDownloadHistory([...downloadHistory, ...newFiles]);
+                setSelectedFiles([]);
+            } else {
+                console.error("File upload failed:", response.statusText);
+            }
+        } catch (error) {
+            console.error("File upload error:", error);
+        }
     };
 
     const handleSearchQueryChange = (e) => {
         setSearchQuery(e.target.value);
     };
 
-    const handleSearch = () => {
-        // Implement the search functionality
+    const handleSearch = async () => {
+        try {
+            const response = await fetch(`http://localhost:3000/search?q=${searchQuery}`);
+            if (response.ok) {
+                const result = await response.json();
+                const newFiles = result.map(file => ({
+                    name: file.originalname,
+                    size: (file.size / (1024 * 1024)).toFixed(2),
+                    date: new Date(file.uploadDate).toLocaleDateString(),
+                    type: file.mimetype,
+                    file: file,
+                }));
+                setFiles(newFiles);
+            } else {
+                console.error('Search failed:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+        }
+    };
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+
+    const handleCategoryChange = (category) => {
+        setSelectedCategory(category);
     };
 
     const handleFileView = (file) => {
@@ -62,10 +89,10 @@ function DMS() {
     const closeFileView = () => {
         setViewedFile(null);
     };
-    
+
     const handleFileDownload = (file) => {
         const url = URL.createObjectURL(file.file);
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
         link.download = file.name;
         document.body.appendChild(link);
@@ -73,6 +100,31 @@ function DMS() {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     };
+
+    useEffect(() => {
+        const fetchFiles = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/search?q=');
+                if (response.ok) {
+                    const result = await response.json();
+                    const initialFiles = result.map(file => ({
+                        name: file.originalname,
+                        size: (file.size / (1024 * 1024)).toFixed(2),
+                        date: new Date(file.uploadDate).toLocaleDateString(),
+                        type: file.mimetype,
+                        file: file,
+                    }));
+                    setFiles(initialFiles);
+                } else {
+                    console.error('Failed to fetch files:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+            }
+        };
+
+        fetchFiles();
+    }, []);
 
     return (
         <div>
@@ -103,15 +155,14 @@ function DMS() {
                     {/* SECOND-LINE */}
                     <div className="flex gap-5 justify-between mt-11  max-md:flex-wrap max-md:mt-10 ">
                         <div className="flex gap-4 text-lg text-zinc-500 max-md:flex-wrap">
-                            <div className="flex gap-5 px-6 py-2 bg-white rounded-xl border-2 border-solid border-neutral-400 ml-0 h-[50px] max-md:px-5">
+                            <div className="flex gap-5 px-6 py-2 bg-white rounded-xl border-2 border-solid border-neutral-400 ml-0 h-[50px]">
                                 <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/8a890c21fd73c04af2abde1dec9af26e4f745399bebbe3d4a84cd65ad7618159?"
-                                    className="shrink-0 w-[5px] h-[5px] " alt="Search icon" />
+                                    className="shrink-0 w-[25px] h-[25px] " alt="Search icon" />
                                 <input type="text" className="flex-auto my-auto outline-none " placeholder="Search documents"
                                     value={searchQuery}
                                     onChange={handleSearchQueryChange}
                                 />
                             </div>
-
 
                             <div className="flex gap-5 py-2 pr-2.5 pl-6 bg-white rounded-xl border-2 border-solid border-neutral-400 max-md:pl-5 h-[50px]">
                                 <select className='' value={product.productCategory} onChange={(evt) => setProduct({ ...product, productCategory: evt.target.value })}>
@@ -128,7 +179,7 @@ function DMS() {
                             </div>
                         </div>
                         <button
-                            className="justify-center px-16 py-4 text-xl text-white whitespace-nowrap rounded-xl bg-violet-950 max-md:pr-7 max-md:pl-6"
+                            className="justify-center  text-xl text-white whitespace-nowrap rounded-xl bg-violet-950 w-[100px] h-[50px]"
                             onClick={handleSearch}
                         >
                             Search
